@@ -1,0 +1,22 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t maciejmatu/react-tests -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true maciejmatu/react-test npm test
+
+after_success:
+  - docker build -t maciejmatu/complex-client ./client
+  - docker build -t maciejmatu/complex-nginx  ./nginx
+  - docker build -t maciejmatu/complex-server  ./server
+  - docker build -t maciejmatu/complex-worker  ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push maciejmatu/complex-client
+  - docker push maciejmatu/complex-nginx
+  - docker push maciejmatu/complex-server
+  - docker push maciejmatu/complex-worker
